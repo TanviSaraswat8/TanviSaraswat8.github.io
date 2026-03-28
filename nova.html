@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova — AI Voice Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #04060f;
+  --surface: #080d1a;
+  --card:    #0d1425;
+  --border:  #1a2440;
+  --ink:     #f0f4ff;
+  --muted:   #8896b3;
+  --dim:     #3d4f6e;
+  --purple:  #7c3aed;
+  --violet:  #a78bfa;
+  --pink:    #f472b6;
+  --glow:    #818cf8;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Instrument Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── ANIMATED BACKGROUND ── */
+.bg-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  animation: drift 8s ease-in-out infinite alternate;
+}
+
+.orb1 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(124,58,237,0.15), transparent 70%);
+  top: -100px; left: -100px;
+  animation-duration: 9s;
+}
+
+.orb2 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(244,114,182,0.1), transparent 70%);
+  bottom: 20%; right: -80px;
+  animation-duration: 11s;
+  animation-delay: -3s;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(30px, 40px); }
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 20px 48px;
+  display: flex; justify-content: space-between; align-items: center;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  background: rgba(4,6,15,0.85);
+  backdrop-filter: blur(20px);
+}
+
+.nav-brand {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.nav-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--violet);
+  box-shadow: 0 0 12px var(--violet);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 8px var(--violet); }
+  50% { box-shadow: 0 0 20px var(--violet), 0 0 40px rgba(167,139,250,0.3); }
+}
+
+.nav-back {
+  font-size: 12px;
+  color: var(--dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: var(--muted); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 48px 80px;
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-label {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--violet);
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.6s 0.1s forwards;
+}
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(60px, 10vw, 130px);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -4px;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.2s forwards;
+}
+
+.hero-title .grad {
+  background: linear-gradient(135deg, var(--violet) 0%, var(--pink) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-title .dim-text {
+  font-size: 0.38em;
+  letter-spacing: -1px;
+  display: block;
+  margin-top: 8px;
+  -webkit-text-fill-color: var(--dim);
+  background: none;
+  font-weight: 400;
+}
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 480px;
+  line-height: 1.85;
+  margin-bottom: 48px;
+  font-weight: 300;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.35s forwards;
+}
+
+.hero-tags {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.45s forwards;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: var(--card);
+  letter-spacing: 0.5px;
+}
+
+.tag.accent {
+  border-color: rgba(167,139,250,0.3);
+  color: var(--violet);
+  background: rgba(124,58,237,0.08);
+}
+
+/* ── TERMINAL DEMO ── */
+.terminal-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 48px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+.terminal {
+  background: #0a0a0f;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(124,58,237,0.08);
+}
+
+.terminal-bar {
+  background: #111118;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.t-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+}
+.t-red   { background: #ff5f57; }
+.t-yellow{ background: #febc2e; }
+.t-green { background: #28c840; }
+
+.terminal-title {
+  font-size: 12px;
+  color: var(--dim);
+  margin-left: 8px;
+  font-family: monospace;
+}
+
+.terminal-body {
+  padding: 28px 32px;
+  font-family: 'Courier New', monospace;
+  font-size: 13.5px;
+  line-height: 2;
+}
+
+.t-prompt { color: var(--dim); }
+.t-cmd    { color: var(--ink); }
+.t-nova   { color: var(--violet); font-weight: 600; }
+.t-user   { color: var(--pink); }
+.t-output { color: #4ade80; }
+.t-comment{ color: var(--dim); font-style: italic; }
+.t-cursor {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--violet);
+  animation: blink 1s infinite;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── SECTIONS ── */
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 48px;
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 1;
+}
+
+.section-header {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.section-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--dim);
+  text-transform: uppercase;
+  padding-top: 6px;
+}
+
+.section-content h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 20px;
+  letter-spacing: -1px;
+  line-height: 1.15;
+}
+
+.section-content p {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.9;
+  margin-bottom: 16px;
+  font-weight: 300;
+}
+
+/* ── COMMANDS GRID ── */
+.commands-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.cmd-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 20px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.cmd-card:hover {
+  border-color: rgba(167,139,250,0.3);
+  transform: translateY(-2px);
+}
+
+.cmd-voice {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--violet);
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  background: rgba(124,58,237,0.08);
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.cmd-label {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── STACK ── */
+.stack-list {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.stack-item {
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.stack-item:last-child { border-bottom: none; }
+
+.stack-lib {
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--violet);
+}
+
+.stack-desc {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.stack-badge {
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: rgba(167,139,250,0.08);
+  color: var(--violet);
+  border: 1px solid rgba(167,139,250,0.2);
+  white-space: nowrap;
+}
+
+/* ── CODE BLOCK ── */
+.code-block {
+  margin-top: 32px;
+  background: #080810;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px 32px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 2;
+  overflow-x: auto;
+}
+
+.c-keyword  { color: #c084fc; }
+.c-func     { color: #60a5fa; }
+.c-string   { color: #86efac; }
+.c-comment  { color: #4b5563; font-style: italic; }
+.c-var      { color: #f9a8d4; }
+.c-num      { color: #fbbf24; }
+
+/* ── CTA ── */
+.cta-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 48px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.cta-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+}
+
+.cta-sub {
+  font-size: 15px;
+  color: var(--dim);
+  margin-bottom: 36px;
+}
+
+.btn-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 28px;
+  background: linear-gradient(135deg, var(--purple), #6d28d9);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+  box-shadow: 0 0 24px rgba(124,58,237,0.3);
+}
+.btn-primary:hover { opacity: 0.85; }
+
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 28px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-secondary:hover { border-color: var(--violet); color: var(--violet); }
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: 28px 48px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--dim);
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+@media (max-width: 768px) {
+  nav, .hero, .terminal-wrap, .section, .cta-section, footer { padding-left: 24px; padding-right: 24px; }
+  .section-header { grid-template-columns: 1fr; gap: 16px; }
+  .commands-grid { grid-template-columns: 1fr 1fr; }
+  .stack-item { grid-template-columns: 1fr; gap: 6px; }
+  .hero-title { letter-spacing: -2px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <span class="nav-dot"></span>
+    NOVA
+  </a>
+  <a class="nav-back" href="https://tanvisaraswat8.github.io">← Back to portfolio</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Project 02 · 2026 · Python</div>
+  <h1 class="hero-title">
+    <span class="grad">NOVA</span>
+    <span class="dim-text">AI Voice Assistant</span>
+  </h1>
+  <p class="hero-sub">A voice-activated AI assistant that listens through your microphone, understands natural commands, and responds — built entirely in Python.</p>
+  <div class="hero-tags">
+    <span class="tag accent">Python</span>
+    <span class="tag accent">Speech Recognition</span>
+    <span class="tag accent">Text-to-Speech</span>
+    <span class="tag">Voice I/O</span>
+    <span class="tag">Automation</span>
+    <span class="tag">Personal Project</span>
+  </div>
+</div>
+
+<!-- TERMINAL DEMO -->
+<div class="terminal-wrap reveal">
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="t-dot t-red"></div>
+      <div class="t-dot t-yellow"></div>
+      <div class="t-dot t-green"></div>
+      <span class="terminal-title">nova.py — running</span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-prompt">$ </span><span class="t-cmd">python nova.py</span></div>
+      <div><span class="t-nova">NOVA: </span><span class="t-cmd">Hello, I am Nova. How can I help you?</span></div>
+      <div><span class="t-comment"># Listening through microphone...</span></div>
+      <div><span class="t-user">You: </span><span class="t-cmd">open youtube</span></div>
+      <div><span class="t-nova">NOVA: </span><span class="t-output">Opening YouTube</span></div>
+      <div><span class="t-user">You: </span><span class="t-cmd">what time is it</span></div>
+      <div><span class="t-nova">NOVA: </span><span class="t-output">The time is 08:45 PM</span></div>
+      <div><span class="t-user">You: </span><span class="t-cmd">play lo-fi music</span></div>
+      <div><span class="t-nova">NOVA: </span><span class="t-output">Playing lo-fi music</span></div>
+      <div><span class="t-comment"># Searching YouTube...</span></div>
+      <div><span class="t-user">You: </span><span class="t-cmd">exit</span></div>
+      <div><span class="t-nova">NOVA: </span><span class="t-output">Goodbye.</span><span class="t-cursor"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- WHAT IT DOES -->
+<div class="section">
+  <div class="section-header reveal">
+    <div class="section-num">01 · About</div>
+    <div class="section-content">
+      <h2>What Nova does.</h2>
+      <p>Nova is a voice-activated desktop assistant built in Python. You speak — it listens through your laptop microphone, processes what you said, and responds or acts immediately.</p>
+      <p>No wake word services, no cloud dependency for core functions. Just Python running locally on your machine, responding to your voice in real time.</p>
+    </div>
+  </div>
+  <div class="commands-grid reveal">
+    <div class="cmd-card">
+      <div class="cmd-voice">"open youtube"</div>
+      <div class="cmd-label">Opens YouTube directly in your browser</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-voice">"what time is it"</div>
+      <div class="cmd-label">Speaks back the current time</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-voice">"play [song name]"</div>
+      <div class="cmd-label">Searches and plays on YouTube</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-voice">"open google"</div>
+      <div class="cmd-label">Launches Google in browser</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-voice">"what's the date"</div>
+      <div class="cmd-label">Reads out today's date</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-voice">"open spotify"</div>
+      <div class="cmd-label">Opens Spotify web player</div>
+    </div>
+  </div>
+</div>
+
+<!-- TECH STACK -->
+<div class="section">
+  <div class="section-header reveal">
+    <div class="section-num">02 · Stack</div>
+    <div class="section-content">
+      <h2>Built with Python.</h2>
+      <p>Nova uses four core Python libraries, each handling a specific layer of the voice interaction pipeline.</p>
+      <div class="stack-list">
+        <div class="stack-item">
+          <span class="stack-lib">speech_recognition</span>
+          <span class="stack-desc">Captures audio from the microphone and converts speech to text using Google's API</span>
+          <span class="stack-badge">Voice Input</span>
+        </div>
+        <div class="stack-item">
+          <span class="stack-lib">pyttsx3</span>
+          <span class="stack-desc">Text-to-speech engine — makes Nova speak responses out loud, offline</span>
+          <span class="stack-badge">Voice Output</span>
+        </div>
+        <div class="stack-item">
+          <span class="stack-lib">webbrowser</span>
+          <span class="stack-desc">Opens URLs and web services on voice command</span>
+          <span class="stack-badge">Automation</span>
+        </div>
+        <div class="stack-item">
+          <span class="stack-lib">datetime / os</span>
+          <span class="stack-desc">Fetches system time, date, and executes system-level commands</span>
+          <span class="stack-badge">System</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CODE SNIPPET -->
+<div class="section">
+  <div class="section-header reveal">
+    <div class="section-num">03 · Code</div>
+    <div class="section-content">
+      <h2>How it works.</h2>
+      <p>The core listen-respond loop — Nova captures audio, transcribes it, matches a command, and acts.</p>
+      <div class="code-block">
+<span class="c-keyword">def</span> <span class="c-func">listen</span>():
+    <span class="c-keyword">with</span> sr.<span class="c-func">Microphone</span>() <span class="c-keyword">as</span> <span class="c-var">mic</span>:
+        <span class="c-var">audio</span> = r.<span class="c-func">listen</span>(mic, phrase_time_limit=<span class="c-num">5</span>)
+    <span class="c-keyword">try</span>:
+        <span class="c-var">command</span> = r.<span class="c-func">recognize_google</span>(audio)
+        <span class="c-keyword">return</span> command.<span class="c-func">lower</span>()
+    <span class="c-keyword">except</span>:
+        <span class="c-func">speak</span>(<span class="c-string">"Please say that again."</span>)
+        <span class="c-keyword">return</span> <span class="c-string">""</span>
+
+<span class="c-comment"># Main command loop</span>
+<span class="c-keyword">elif</span> <span class="c-string">"open youtube"</span> <span class="c-keyword">in</span> command:
+    <span class="c-func">speak</span>(<span class="c-string">"Opening YouTube"</span>)
+    webbrowser.<span class="c-func">open</span>(<span class="c-string">"https://youtube.com"</span>)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section reveal">
+  <div class="cta-title">See more projects.</div>
+  <div class="cta-sub">Nova is one of several things I'm building. View the full portfolio.</div>
+  <div class="btn-row">
+    <a class="btn-primary" href="https://tanvisaraswat8.github.io">View Portfolio</a>
+    <a class="btn-secondary" href="https://tanvisaraswat8.github.io/vani.html">See VANI →</a>
+  </div>
+</div>
+
+<footer>
+  <span>Nova · Tanvi Saraswat · 2026</span>
+  <span>tanvisaraswat40@gmail.com</span>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 100);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
